@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "patchwork-review"
+version = "0.1.0"
+description = "AI code review for git diffs — powered by Claude"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+keywords = ["code-review", "git", "claude", "ai", "diff"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Topic :: Software Development",
+]
+dependencies = [
+    "anthropic>=0.40.0",
+    "click>=8.0.0",
+]
+
+[project.scripts]
+patchwork = "patchwork.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/Gnomecromancer/patchwork"
+Repository = "https://github.com/Gnomecromancer/patchwork"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["patchwork*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
