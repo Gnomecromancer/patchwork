@@ -7,7 +7,7 @@ name = "patchwork-review"
 version = "0.1.0"
 description = "AI code review for git diffs — powered by Claude"
 readme = "README.md"
-license = { text = "MIT" }
+license = "MIT"
 requires-python = ">=3.10"
 keywords = ["code-review", "git", "claude", "ai", "diff"]
 classifiers = [
