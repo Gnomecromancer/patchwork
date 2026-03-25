@@ -15,7 +15,7 @@ from pathlib import Path
 import click
 
 from . import __version__
-from .review import stream_review
+from .review import render_html, stream_review
 
 _DEFAULT_MODEL = "claude-opus-4-6"
 
@@ -71,6 +71,8 @@ def main():
 @click.option("--focus", default=None, metavar="TEXT",
               help="Optional focus instructions (e.g. 'security only' or 'look for N+1 queries').")
 @click.option("--no-stream", is_flag=True, help="Wait for full response before printing.")
+@click.option("--html", "html_file", default=None, metavar="FILE",
+              help="Write an HTML report to FILE in addition to streaming to stdout.")
 def review(
     staged: bool,
     unstaged: bool,
@@ -79,19 +81,23 @@ def review(
     model: str,
     focus: str | None,
     no_stream: bool,
+    html_file: str | None,
 ):
     """
     Review your git diff with Claude.
 
     \b
     Examples:
-        patchwork review                     # staged + unstaged
-        patchwork review --staged            # only staged
-        patchwork review --since HEAD~3      # last 3 commits
-        patchwork review --since main        # diff vs main branch
-        patchwork review -f src/auth.py      # single file
+        patchwork review                          # staged + unstaged
+        patchwork review --staged                 # only staged
+        patchwork review --since HEAD~3           # last 3 commits
+        patchwork review --since main             # diff vs main branch
+        patchwork review -f src/auth.py           # single file
         patchwork review --focus "security"
+        patchwork review --html report.html       # also save HTML report
     """
+    import datetime
+
     try:
         diff = _get_diff(staged, unstaged, since, filepath)
     except click.ClickException:
@@ -107,9 +113,23 @@ def review(
     click.echo(f"reviewing {lines} line diff with {model} …\n", err=True)
 
     try:
-        stream_review(diff, model=model, focus=focus, stream=not no_stream)
+        content = stream_review(diff, model=model, focus=focus, stream=not no_stream)
     except Exception as e:
         raise click.ClickException(str(e))
+
+    if html_file:
+        try:
+            repo_path = Path(".").resolve()
+        except Exception:
+            repo_path = Path(".")
+        meta = {
+            "path": str(repo_path),
+            "date": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "model": model,
+        }
+        html_content = render_html(content, meta)
+        Path(html_file).write_text(html_content, encoding="utf-8")
+        click.echo(f"\nHTML report written to {html_file}", err=True)
 
 
 @main.command()
